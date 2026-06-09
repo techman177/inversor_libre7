@@ -77,7 +77,7 @@ export default function AdminDashboard() {
       
       <header className="flex justify-between items-center mb-12 border-b border-slate-800 pb-6 max-w-7xl mx-auto">
         <div>
-          <h1 className="text-3xl font-black text-white uppercase tracking-widest">Centro de <span className="text-fuchsia-500">Mando</span></h1>
+          <h1 className="text-3xl font-black text-white uppercase tracking-widest">Centro de <span className="text-fuchsia-500">Mando</span> <span className="text-cyan-400">Institucional</span></h1>
           <p className="text-slate-400 text-sm mt-1">Gestión de Auditoría Financiera - CodeMagnum</p>
         </div>
         <Link href="/dashboard" className="text-cyan-400 font-bold hover:underline text-sm uppercase tracking-widest">
@@ -86,6 +86,35 @@ export default function AdminDashboard() {
       </header>
 
       <main className="max-w-7xl mx-auto">
+        {/* KPIs - Centro de Mando Institucional */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
+          <div className="bg-slate-900/40 backdrop-blur rounded-3xl p-6 border border-cyan-500/20 shadow-lg">
+            <p className="text-xs uppercase tracking-widest text-slate-400">Capital Total Bajo Gestión (AUM)</p>
+            <div className="mt-4 flex items-center justify-between">
+              <h3 className="text-2xl md:text-3xl font-black bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 to-blue-400">$145,250.00 USD</h3>
+              <span className="text-sm font-bold text-emerald-400">+12% este mes</span>
+            </div>
+            <p className="mt-3 text-[13px] text-slate-400">Visión consolidada de activos bajo gestión.</p>
+          </div>
+
+          <div className="bg-slate-900/40 backdrop-blur rounded-3xl p-6 border border-emerald-400/20 shadow-lg">
+            <p className="text-xs uppercase tracking-widest text-slate-400">Ingresos Netos CodeMagnum</p>
+            <div className="mt-4">
+              <h3 className="text-2xl md:text-3xl font-black text-white">$2,178.75 USD</h3>
+              <p className="mt-2 text-sm text-slate-400">Proveniente de <span className="text-rose-300 font-bold">Spread (1.5%)</span> y <span className="text-emerald-300 font-bold">AUM (0.125%)</span></p>
+            </div>
+          </div>
+
+          <div className="bg-slate-900/40 backdrop-blur rounded-3xl p-6 border border-fuchsia-500/20 shadow-lg">
+            <p className="text-xs uppercase tracking-widest text-slate-400">Bóvedas Institucionales Activas</p>
+            <div className="mt-4 flex items-center justify-between">
+              <h3 className="text-2xl md:text-3xl font-black text-white">42 Clientes</h3>
+              <span className="text-sm text-fuchsia-400 font-bold">Estado: Estable</span>
+            </div>
+            <p className="mt-3 text-[13px] text-slate-400">Monitoreo de custodia y accesos institucionales.</p>
+          </div>
+        </div>
+
         <h2 className="text-xl font-black text-white mb-6 uppercase tracking-widest border-l-4 border-cyan-400 pl-4">Operaciones Pendientes de Revisión</h2>
 
         {transacciones.length === 0 ? (

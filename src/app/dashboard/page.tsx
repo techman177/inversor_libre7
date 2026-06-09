@@ -56,7 +56,7 @@ export default function DashboardPage() {
     if (!user) { window.location.href = '/login'; return }
     setUserId(user.id)
 
-    const { data: billetera } = await supabase.from('billeteras').select('*').eq('id_usuario', user.id).single()
+    let { data: billetera } = await supabase.from('billeteras').select('*').eq('id_usuario', user.id).single()
     if (billetera) {
       setUserData(billetera)
       setBalance(Number(billetera.balance_total))
@@ -70,6 +70,7 @@ export default function DashboardPage() {
     const { data: txs } = await supabase.from('transacciones').select('*').eq('id_usuario', user.id).order('fecha', { ascending: false }).limit(5)
     if (txs) setHistorialTx(txs)
 
+    // AQUI CARGAMOS LAS INVERSIONES DEL USUARIO
     const { data: invs } = await supabase.from('inversiones_usuario').select('*, paquetes_inversion(*)').eq('id_usuario', user.id).eq('estado', 'activa')
     if (invs) setMisInversiones(invs)
 
@@ -98,6 +99,7 @@ export default function DashboardPage() {
     await supabase.from('billeteras').update({ reinvertir_ganancias: nuevoEstado }).eq('id_usuario', userId)
     mostrarAlerta('Preferencia Guardada', nuevoEstado ? 'Tus ganancias ahora generarán interés compuesto automático.' : 'Las ganancias se enviarán a tu balance líquido.', 'exito')
   }
+
   const actualizarSeguridad = async (e: React.FormEvent) => {
     e.preventDefault()
     setSubiendo(true)
@@ -116,7 +118,6 @@ export default function DashboardPage() {
     } catch (error: any) { mostrarAlerta('Error', error.message, 'error') } finally { setSubiendo(false) }
   }
 
-  // --- FLUJO DE INVERSIÓN (PARED) ---
   const abrirDetallePaquete = (paquete: any) => {
     setPaqueteSeleccionado(paquete)
     setModalActivo('detalle_paquete')
@@ -125,7 +126,7 @@ export default function DashboardPage() {
   const ejecutarInversion = async () => {
     if (!paqueteSeleccionado) return
     if (balance < paqueteSeleccionado.monto_minimo) {
-      setModalActivo('deposito') // Redirige a depositar
+      setModalActivo('deposito')
       return
     }
     
@@ -140,7 +141,6 @@ export default function DashboardPage() {
     })
   }
 
-  // --- OPERACIONES ---
   const procesarDepositoConComprobante = async (e: React.FormEvent) => {
     e.preventDefault()
     if (!monto || Number(monto) <= 0) return mostrarAlerta('Monto Inválido', 'Ingresa un monto mayor a 0.', 'error')
@@ -189,10 +189,14 @@ export default function DashboardPage() {
   if (loading) return <div className="min-h-screen bg-[#020617] text-white flex justify-center items-center font-black tracking-widest uppercase">Validando Conexión Segura...</div>
   const totalInvertido = misInversiones.reduce((acc, inv) => acc + Number(inv.monto_invertido), 0)
 
+  // Cálculos para el modal de depósito (Spread / Fee)
+  const montoValor = Number(monto) || 0
+  const feeTecnico = montoValor * 0.015
+  const totalABoveda = montoValor - feeTecnico
+
   return (
-    <div className={`min-h-screen font-sans flex flex-col transition-colors duration-500 ${temaOscuro ? 'bg-[#020617] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
+    <div className={`min-h-screen font-sans flex flex-col transition-colors duration-500 overflow-x-hidden ${temaOscuro ? 'bg-[#020617] text-slate-100' : 'bg-slate-50 text-slate-900'}`}>
       
-      {/* HEADER NAVBAR */}
       <header className={`border-b backdrop-blur-xl p-5 px-8 flex justify-between items-center sticky top-0 z-40 transition-colors ${temaOscuro ? 'border-slate-800/80 bg-[#0f172a]/90' : 'border-slate-200 bg-white/90'}`}>
         <h1 className="text-xl md:text-2xl font-black tracking-wider">
           INVERSOR <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">LIBRE</span>
@@ -204,7 +208,7 @@ export default function DashboardPage() {
           </button>
 
           {menuAbierto && (
-            <div className={`absolute right-0 mt-4 w-64 rounded-2xl shadow-2xl border overflow-hidden transition-colors ${temaOscuro ? 'bg-[#0f172a] border-slate-700' : 'bg-white border-slate-200'}`}>
+            <div className={`absolute right-0 mt-4 w-[90vw] max-w-[250px] md:w-64 rounded-2xl shadow-2xl border overflow-hidden transition-colors ${temaOscuro ? 'bg-[#0f172a] border-slate-700' : 'bg-white border-slate-200'}`}>
               <div className={`p-4 border-b ${temaOscuro ? 'border-slate-800' : 'border-slate-100'}`}>
                 <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">Titular de Cuenta</p>
                 <p className={`text-sm font-bold truncate ${temaOscuro ? 'text-white' : 'text-black'}`}>{userData?.nombre} {userData?.apellido}</p>
@@ -234,8 +238,16 @@ export default function DashboardPage() {
         </div>
       </header>
 
-      <main className="max-w-7xl mx-auto p-6 mt-6 flex-grow w-full space-y-8">
+      <main className="max-w-7xl mx-auto p-6 mt-6 flex-grow w-full space-y-10">
         
+        {/* EL NUEVO SALUDO VIP */}
+        <div>
+          <h2 className={`text-3xl font-black tracking-tight ${temaOscuro ? 'text-white' : 'text-slate-900'}`}>
+            Hola, {userData?.nombre || 'Inversor'} 👋
+          </h2>
+          <p className={temaOscuro ? 'text-slate-400' : 'text-slate-500'}>Resumen de tu patrimonio indexado.</p>
+        </div>
+
         {/* PANEL PRINCIPAL (HERO) */}
         <div className="grid lg:grid-cols-3 gap-6">
           <div className={`lg:col-span-2 border rounded-[2rem] p-8 md:p-12 shadow-2xl relative overflow-hidden transition-colors ${temaOscuro ? 'bg-gradient-to-br from-[#0f172a] to-[#020617] border-slate-800' : 'bg-gradient-to-br from-white to-slate-100 border-slate-200'}`}>
@@ -249,9 +261,9 @@ export default function DashboardPage() {
                   ${balance.toLocaleString('en-US', { minimumFractionDigits: 2 })} <span className="text-sm font-medium text-cyan-500 font-mono">USD</span>
                 </h2>
               </div>
-              <div className="flex flex-col gap-3 w-full md:w-auto">
-                <button onClick={() => setModalActivo('deposito')} className="bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 text-white font-black py-4 px-8 rounded-xl transition-all uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(6,182,212,0.3)]">Fondear Bóveda</button>
-                <button onClick={() => setModalActivo('retiro')} className={`border font-black py-4 px-8 rounded-xl transition-all uppercase tracking-widest text-xs ${temaOscuro ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'}`}>Retirar Capital</button>
+              <div className="flex flex-col md:flex-row gap-3 w-full md:w-auto">
+                <button onClick={() => setModalActivo('deposito')} className="w-full md:w-auto bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 text-white font-black py-4 px-8 rounded-xl transition-all uppercase tracking-widest text-xs shadow-[0_0_20px_rgba(6,182,212,0.3)]">Fondear Bóveda</button>
+                <button onClick={() => setModalActivo('retiro')} className={`w-full md:w-auto border font-black py-4 px-8 rounded-xl transition-all uppercase tracking-widest text-xs ${temaOscuro ? 'bg-slate-900 border-slate-700 text-slate-300 hover:bg-slate-800' : 'bg-white border-slate-300 text-slate-700 hover:bg-slate-50'}`}>Retirar Capital</button>
               </div>
             </div>
           </div>
@@ -273,6 +285,53 @@ export default function DashboardPage() {
               <p className={`text-xs font-bold ${reinvertir ? 'text-cyan-400' : 'text-slate-500'}`}>
                 {reinvertir ? 'Reinversión Automática ON' : 'Ganancias a saldo líquido'}
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* LA NUEVA CARTERA ACTIVA (Solo se muestra si tiene inversiones) */}
+        {misInversiones.length > 0 && (
+          <div>
+            <div className="flex items-center gap-4 mb-6 mt-8">
+              <h3 className={`text-xl font-black uppercase tracking-widest border-l-4 border-emerald-400 pl-4 ${temaOscuro ? 'text-white' : 'text-slate-800'}`}>Mi Portafolio Activo</h3>
+              <span className={`text-xs font-bold px-3 py-1 rounded-full ${temaOscuro ? 'bg-slate-800 text-slate-300' : 'bg-slate-200 text-slate-700'}`}>Total Indexado: ${totalInvertido.toLocaleString('en-US')}</span>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {misInversiones.map((inv) => (
+                <div key={inv.id} className={`border rounded-2xl p-6 relative overflow-hidden ${temaOscuro ? 'bg-gradient-to-br from-[#0f172a] to-[#020617] border-slate-800' : 'bg-white border-slate-200 shadow-md'}`}>
+                  <div className="absolute top-0 right-0 w-16 h-16 bg-emerald-500/10 rounded-full blur-[20px]"></div>
+                  <div className="flex justify-between items-start mb-4">
+                    <div>
+                      <p className="text-[10px] font-black text-cyan-500 uppercase tracking-widest mb-1">Contrato Activo</p>
+                      <h4 className={`text-lg font-bold ${temaOscuro ? 'text-white' : 'text-slate-900'}`}>{inv.paquetes_inversion?.nombre}</h4>
+                    </div>
+                    <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
+                  </div>
+                  <p className={`text-3xl font-black mb-4 ${temaOscuro ? 'text-white' : 'text-slate-900'}`}>${Number(inv.monto_invertido).toLocaleString('en-US')}</p>
+                  <div className={`pt-4 border-t flex justify-between text-[10px] font-mono uppercase font-bold ${temaOscuro ? 'border-slate-800 text-slate-400' : 'border-slate-100 text-slate-500'}`}>
+                    <span>Target: +{inv.paquetes_inversion?.rentabilidad_pct}%</span>
+                    <span>Fecha: {new Date(inv.fecha_inicio).toLocaleDateString()}</span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Documentos y Fiscalidad */}
+        <div className="bg-slate-900/30 border border-slate-800 rounded-2xl p-6 mt-8">
+          <p className="text-sm text-slate-400 mb-3">Documentos Fiscales y de Custodia</p>
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+              <div className="text-2xl">📄</div>
+              <div>
+                <p className="text-white font-medium">Estado de Cuenta 2026 (Consolidado)</p>
+                <p className="text-xs text-slate-500">Generado por Hapi Securities LLC</p>
+              </div>
+            </div>
+            <div>
+              <a href="/EstadoCuenta2026.pdf" download className="inline-block px-4 py-2 rounded-xl border border-cyan-500/50 text-cyan-400 hover:bg-cyan-500/10 transition">Descargar PDF</a>
             </div>
           </div>
         </div>
@@ -306,7 +365,7 @@ export default function DashboardPage() {
       {/* ============================================================== */}
       {modalActivo === 'detalle_paquete' && paqueteSeleccionado && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex justify-center items-center p-4">
-          <div className={`w-full max-w-lg rounded-3xl p-8 relative shadow-[0_0_50px_rgba(6,182,212,0.15)] border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`w-[95%] md:w-full md:max-w-lg rounded-3xl p-5 md:p-8 relative shadow-[0_0_50px_rgba(6,182,212,0.15)] border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
             <button onClick={() => setModalActivo('ninguno')} className="absolute top-6 right-6 text-slate-400 hover:text-cyan-500 font-mono text-lg">✕</button>
             <div className="inline-block px-3 py-1 bg-cyan-500/10 border border-cyan-500/20 text-cyan-500 text-[10px] font-black uppercase tracking-widest rounded-md mb-4">Ficha Técnica</div>
             <h3 className={`text-2xl font-black mb-2 tracking-tight ${temaOscuro ? 'text-white' : 'text-slate-900'}`}>{paqueteSeleccionado.nombre}</h3>
@@ -352,7 +411,7 @@ export default function DashboardPage() {
       {/* ============================================================== */}
       {modalActivo === 'seguridad' && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex justify-center items-center p-4">
-          <div className={`w-full max-w-md rounded-3xl p-8 relative shadow-2xl border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`w-[95%] md:w-full md:max-w-md rounded-3xl p-5 md:p-8 relative shadow-2xl border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
             <button onClick={() => setModalActivo('ninguno')} className="absolute top-6 right-6 text-slate-400 hover:text-cyan-500 font-mono text-lg">✕</button>
             <h3 className={`text-xl font-black mb-6 uppercase tracking-widest ${temaOscuro ? 'text-white' : 'text-slate-900'}`}>🔒 Seguridad</h3>
             <form onSubmit={actualizarSeguridad} className="space-y-6">
@@ -375,7 +434,7 @@ export default function DashboardPage() {
       {/* ============================================================== */}
       {modalActivo === 'deposito' && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex justify-center items-center p-4">
-          <div className={`w-full max-w-xl rounded-3xl p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`w-[95%] md:w-full md:max-w-xl rounded-3xl p-5 md:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
             <button onClick={() => setModalActivo('ninguno')} className="absolute top-6 right-6 text-slate-400 hover:text-cyan-500 font-mono text-lg">✕</button>
             <h3 className={`text-xl font-black mb-4 uppercase tracking-widest ${temaOscuro ? 'text-white' : 'text-slate-900'}`}>Aportar Capital</h3>
             
@@ -392,19 +451,31 @@ export default function DashboardPage() {
                </div>
             )}
             
-            {tabDeposito === 'banco' && configEmpresa && (
-               <div className={`rounded-xl p-4 mb-6 border text-xs ${temaOscuro ? 'bg-slate-950 border-slate-800' : 'bg-slate-50 border-slate-200'}`}>
-                 <p className="text-slate-500 mb-4 uppercase tracking-widest">Titular: <span className={`font-black ${temaOscuro ? 'text-white' : 'text-black'}`}>{configEmpresa.banco_titular}</span></p>
-                 <div className={`flex justify-between items-center mb-3 pb-3 border-b ${temaOscuro ? 'border-slate-800' : 'border-slate-200'}`}><span className={temaOscuro ? 'text-white' : 'text-black'}><span className="font-black text-sm">{configEmpresa.banco_1_nombre}</span><br/><span className="text-slate-500 font-mono text-sm">{configEmpresa.banco_1_cuenta}</span></span><button onClick={() => copiarAlPortapapeles(configEmpresa.banco_1_cuenta.replace(/\D/g,''), 'Cuenta')} className="text-cyan-500 font-bold hover:underline">Copiar</button></div>
-                 <div className={`flex justify-between items-center mb-3 pb-3 border-b ${temaOscuro ? 'border-slate-800' : 'border-slate-200'}`}><span className={temaOscuro ? 'text-white' : 'text-black'}><span className="font-black text-sm">{configEmpresa.banco_2_nombre}</span><br/><span className="text-slate-500 font-mono text-sm">{configEmpresa.banco_2_cuenta}</span></span><button onClick={() => copiarAlPortapapeles(configEmpresa.banco_2_cuenta.replace(/\D/g,''), 'Cuenta')} className="text-cyan-500 font-bold hover:underline">Copiar</button></div>
-                 <div className="flex justify-between items-center"><span className={temaOscuro ? 'text-white' : 'text-black'}><span className="font-black text-sm">{configEmpresa.banco_3_nombre}</span><br/><span className="text-slate-500 font-mono text-sm">{configEmpresa.banco_3_cuenta}</span></span><button onClick={() => copiarAlPortapapeles(configEmpresa.banco_3_cuenta.replace(/\D/g,''), 'Cuenta')} className="text-cyan-500 font-bold hover:underline">Copiar</button></div>
+            {tabDeposito === 'banco' && (
+               <div className={`rounded-xl p-4 mb-6 border text-sm ${temaOscuro ? 'bg-emerald-900/20 border-emerald-500/50' : 'bg-emerald-900/20 border-emerald-500/50'}`}>
+                 <p className="text-[13px] text-emerald-100">🛡️ <span className="font-bold">Fondos Custodiados Internacionalmente.</span> Tu capital se transfiere directamente a las cuentas institucionales de nuestro Corresponsal de Corretaje Oficial (Hapi Securities LLC, miembro de FINRA y SIPC).</p>
                </div>
             )}
 
             <form onSubmit={tabDeposito === 'tarjeta' ? prepararPagoTarjeta : procesarDepositoConComprobante}>
               <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Monto a Depositar (USD)</label>
               <input type="number" required value={monto} onChange={(e) => setMonto(e.target.value)} className={`w-full border p-4 rounded-xl font-bold text-lg mb-4 outline-none font-mono transition-colors ${temaOscuro ? 'bg-slate-950 border-slate-800 text-white focus:border-cyan-500' : 'bg-slate-50 border-slate-200 text-black focus:border-cyan-400'}`} />
-              
+
+              <div className="bg-slate-900/50 rounded-xl p-4 border border-slate-800 mb-4">
+                <div className="flex justify-between">
+                  <span className="text-sm text-slate-100">Monto a procesar</span>
+                  <span className="font-mono text-sm text-white">${montoValor.toLocaleString('en-US', { minimumFractionDigits: 2 })}</span>
+                </div>
+                <div className="flex justify-between mt-2">
+                  <span className="text-sm text-slate-400">Fee Tecnológico CodeMagnum (1.5%)</span>
+                  <span className="text-sm text-rose-400 font-mono">${feeTecnico.toFixed(2)}</span>
+                </div>
+                <div className="pt-3 mt-3 border-t border-slate-800 flex justify-between items-center">
+                  <span className="text-sm font-black text-white">Total a Bóveda</span>
+                  <span className="text-cyan-400 font-black text-lg font-mono">${totalABoveda.toFixed(2)}</span>
+                </div>
+              </div>
+
               {tabDeposito !== 'tarjeta' && (
                 <div className="mb-6">
                   <label className="block text-[10px] font-bold text-slate-500 uppercase tracking-widest mb-2">Adjuntar Comprobante *</label>
@@ -415,6 +486,8 @@ export default function DashboardPage() {
               <button type="submit" disabled={subiendo} className={`w-full font-black py-4 rounded-xl uppercase tracking-widest text-xs transition-all ${subiendo ? 'bg-slate-600 text-slate-400 cursor-not-allowed' : (tabDeposito === 'tarjeta' ? 'bg-[#0070ba] hover:bg-[#005ea6] text-white shadow-lg' : 'bg-cyan-500 hover:bg-cyan-400 text-slate-950 shadow-lg')}`}>
                 {subiendo ? 'Procesando...' : (tabDeposito === 'tarjeta' ? '💳 Pagar con Tarjeta' : 'Notificar Depósito')}
               </button>
+
+              <p className="mt-3 text-[10px] text-slate-500">Al depositar, aceptas los términos de custodia institucional. Los fondos son procesados mediante canales regulados.</p>
             </form>
           </div>
         </div>
@@ -425,7 +498,7 @@ export default function DashboardPage() {
       {/* ============================================================== */}
       {modalActivo === 'retiro' && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex justify-center items-center p-4">
-          <div className={`w-full max-w-xl rounded-3xl p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
+          <div className={`w-[95%] md:w-full md:max-w-xl rounded-3xl p-5 md:p-8 relative shadow-2xl max-h-[90vh] overflow-y-auto custom-scrollbar border ${temaOscuro ? 'bg-[#0f172a] border-slate-800' : 'bg-white border-slate-200'}`}>
             <button onClick={() => setModalActivo('ninguno')} className="absolute top-6 right-6 text-slate-400 hover:text-cyan-500 font-mono text-lg">✕</button>
             <h3 className={`text-xl font-black mb-6 uppercase tracking-widest ${temaOscuro ? 'text-white' : 'text-slate-900'}`}>Liquidar Fondos</h3>
             
@@ -474,7 +547,7 @@ export default function DashboardPage() {
       {/* ============================================================== */}
       {modalPayPal && (
         <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-[60] flex justify-center items-center p-4">
-          <div className="bg-slate-900 border border-slate-700 w-full max-w-md rounded-3xl p-8 shadow-[0_0_50px_rgba(0,112,186,0.2)]">
+          <div className="bg-slate-900 border border-slate-700 w-[95%] md:w-full md:max-w-md rounded-3xl p-5 md:p-8 shadow-[0_0_50px_rgba(0,112,186,0.2)]">
             <div className="flex justify-center mb-6"><div className="h-16 w-16 bg-[#0070ba]/20 rounded-full flex items-center justify-center"><span className="text-3xl">💳</span></div></div>
             <h3 className="text-2xl font-black text-center text-white mb-2">Pasarela Segura</h3>
             <p className="text-center text-slate-400 text-sm mb-8">Resumen de liquidación internacional.</p>
@@ -483,18 +556,18 @@ export default function DashboardPage() {
               <div className="flex justify-between items-center mb-4 pb-4 border-b border-slate-800"><span className="text-slate-400 text-sm">Fee (5.4% + $0.30):</span><span className="text-red-400 font-mono">${((montoPayPal * 0.054) + 0.30).toFixed(2)}</span></div>
               <div className="flex justify-between items-center"><span className="text-white font-bold uppercase tracking-widest text-xs">Total:</span><span className="text-cyan-400 font-black text-xl font-mono">${(montoPayPal + (montoPayPal * 0.054) + 0.30).toFixed(2)}</span></div>
             </div>
-            <div className="flex gap-4">
-              <button onClick={() => setModalPayPal(false)} disabled={subiendo} className="flex-1 bg-transparent border border-slate-700 text-slate-300 font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors uppercase text-xs tracking-widest">Cancelar</button>
-              <button onClick={ejecutarRedireccionPayPal} disabled={subiendo} className="flex-1 bg-[#0070ba] hover:bg-[#005ea6] text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase text-xs tracking-widest">{subiendo ? '...' : 'Ir a PayPal'}</button>
+            <div className="flex flex-col md:flex-row gap-4">
+              <button onClick={() => setModalPayPal(false)} disabled={subiendo} className="w-full md:w-auto bg-transparent border border-slate-700 text-slate-300 font-bold py-4 rounded-xl hover:bg-slate-800 transition-colors uppercase text-xs tracking-widest">Cancelar</button>
+              <button onClick={ejecutarRedireccionPayPal} disabled={subiendo} className="w-full md:w-auto bg-[#0070ba] hover:bg-[#005ea6] text-white font-black py-4 rounded-xl shadow-lg transition-all uppercase text-xs tracking-widest">{subiendo ? '...' : 'Ir a PayPal'}</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* ALERTA CUSTOM Y MODALES FIN */}
+      {/* ALERTA CUSTOM */}
       {alerta.visible && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[100] flex justify-center items-center p-4 animate-in fade-in duration-200">
-          <div className={`w-full max-w-sm rounded-3xl p-6 shadow-2xl border ${temaOscuro ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
+          <div className={`w-[95%] md:w-full md:max-w-sm rounded-3xl p-6 shadow-2xl border ${temaOscuro ? 'bg-slate-900 border-slate-700' : 'bg-white border-slate-200'}`}>
             <div className="flex flex-col items-center text-center">
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${alerta.tipo === 'error' ? 'bg-red-500/20 text-red-500' : alerta.tipo === 'exito' ? 'bg-emerald-500/20 text-emerald-500' : alerta.tipo === 'confirmacion' ? 'bg-cyan-500/20 text-cyan-500' : 'bg-blue-500/20 text-blue-500'}`}>
                 <span className="text-3xl">{alerta.tipo === 'error' ? '✕' : alerta.tipo === 'exito' ? '✓' : alerta.tipo === 'confirmacion' ? '?' : 'i'}</span>
@@ -503,9 +576,9 @@ export default function DashboardPage() {
               <p className={`text-sm mb-8 ${temaOscuro ? 'text-slate-400' : 'text-slate-600'}`}>{alerta.mensaje}</p>
               
               {alerta.tipo === 'confirmacion' ? (
-                <div className="flex gap-3 w-full">
-                  <button onClick={() => setAlerta({ ...alerta, visible: false })} className={`flex-1 py-3 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${temaOscuro ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Cancelar</button>
-                  <button onClick={alerta.accionConfirmar} className="flex-1 py-3 bg-cyan-500 text-slate-950 font-black rounded-xl uppercase text-xs tracking-widest shadow-lg hover:bg-cyan-400 transition-colors">Confirmar</button>
+                <div className="flex flex-col md:flex-row gap-3 w-full">
+                  <button onClick={() => setAlerta({ ...alerta, visible: false })} className={`w-full md:w-auto py-3 rounded-xl font-bold uppercase text-xs tracking-widest transition-colors ${temaOscuro ? 'bg-slate-800 text-slate-300 hover:bg-slate-700' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}>Cancelar</button>
+                  <button onClick={alerta.accionConfirmar} className="w-full md:w-auto py-3 bg-cyan-500 text-slate-950 font-black rounded-xl uppercase text-xs tracking-widest shadow-lg hover:bg-cyan-400 transition-colors">Confirmar</button>
                 </div>
               ) : (
                 <button onClick={() => setAlerta({ ...alerta, visible: false })} className="w-full py-3 bg-cyan-500 text-slate-950 font-black rounded-xl uppercase text-xs tracking-widest shadow-lg hover:bg-cyan-400 transition-colors">Entendido</button>

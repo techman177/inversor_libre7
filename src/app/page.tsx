@@ -1,226 +1,280 @@
- 'use client'
-import { motion } from 'framer-motion'
-import type { Variants } from 'framer-motion'
+'use client'
+import { motion, Variants } from 'framer-motion'
 import Link from 'next/link'
+import { useState } from 'react'
 
 export default function ModernLandingPage() {
-  // Variantes de animación para reusar
+  const [menuMovilAbierto, setMenuMovilAbierto] = useState(false)
+
+  // Variantes de animación con tipado estricto oficial para evitar rabieta de TypeScript
   const fadeInUp: Variants = {
-    hidden: { opacity: 0, y: 40 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.8, ease: "easeOut" } }
+    hidden: { opacity: 0, y: 30 },
+    visible: { 
+      opacity: 1, 
+      y: 0, 
+      transition: { duration: 0.6, ease: [0.16, 1, 0.3, 1] } 
+    }
   }
 
   const staggerContainer: Variants = {
     hidden: { opacity: 0 },
-    visible: { opacity: 1, transition: { staggerChildren: 0.2 } }
+    visible: { 
+      opacity: 1, 
+      transition: { staggerChildren: 0.15 } 
+    }
   }
 
   return (
-    <main className="min-h-screen bg-[#020617] text-slate-200 font-sans selection:bg-cyan-500 selection:text-black overflow-hidden">
+    <div className="min-h-screen bg-[#020617] text-slate-100 font-sans selection:bg-cyan-500 selection:text-slate-950 overflow-x-hidden">
       
-      {/* CAPA DE FONDOS Y GRADIENTES (CIBER-SEGURIDAD) */}
-      <div className="fixed inset-0 z-0 pointer-events-none">
-        <div className="absolute top-[-20%] left-[-10%] w-[600px] h-[600px] bg-cyan-600/10 rounded-full blur-[150px]"></div>
-        <div className="absolute bottom-[-20%] right-[-10%] w-[600px] h-[600px] bg-fuchsia-600/10 rounded-full blur-[150px]"></div>
-        <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-20 mix-blend-overlay"></div>
-      </div>
+      {/* 1. BARRA DE NAVEGACIÓN PREMIUM */}
+      <nav className="border-b border-slate-800/60 bg-[#020617]/80 backdrop-blur-xl sticky top-0 z-50 transition-colors">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex justify-between items-center">
+          
+          {/* Logo */}
+          <Link href="/" className="text-xl md:text-2xl font-black tracking-wider text-white">
+            INVERSOR <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-fuchsia-500">LIBRE</span>
+          </Link>
 
-      {/* NAVEGACIÓN SUPERIOR */}
-      <nav className="relative z-50 flex justify-between items-center p-6 md:p-8 max-w-7xl mx-auto border-b border-white/5 bg-[#020617]/80 backdrop-blur-md sticky top-0">
-        <h1 className="text-2xl md:text-3xl font-black tracking-tighter">
-          INVERSOR<span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-cyan-200">LIBRE</span>
-        </h1>
-        <div className="hidden md:flex gap-8 text-[11px] font-black uppercase tracking-[0.2em] text-slate-400">
-          <a href="#plataforma" className="hover:text-cyan-400 transition-colors">La Plataforma</a>
-          <a href="#etf" className="hover:text-cyan-400 transition-colors">Tecnología ETF</a>
-          <a href="#seguridad" className="hover:text-cyan-400 transition-colors">Seguridad</a>
+          {/* Menú Escritorio */}
+          <div className="hidden md:flex items-center gap-8">
+            <a href="#beneficios" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Beneficios</a>
+            <a href="#portafolios" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Mercados</a>
+            <a href="#seguridad" className="text-sm font-semibold text-slate-400 hover:text-white transition-colors">Seguridad</a>
+            <Link href="/login" className="text-sm font-bold bg-slate-900 border border-slate-700 hover:bg-slate-800 text-white px-5 py-2.5 rounded-xl transition-all uppercase tracking-wider text-[11px]">
+              Ingresar a Bóveda
+            </Link>
+          </div>
+
+          {/* Hamburguesa Móvil */}
+          <div className="md:hidden">
+            <button 
+              onClick={() => setMenuMovilAbierto(!menuMovilAbierto)} 
+              className="p-2 text-slate-400 hover:text-white focus:outline-none"
+            >
+              <svg className="h-6 w-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                {menuMovilAbierto ? (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                ) : (
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 12h16M4 18h16" />
+                )}
+              </svg>
+            </button>
+          </div>
         </div>
-        <div className="flex gap-4">
-          <Link href="/login" className="hidden md:flex items-center px-6 py-2.5 text-xs font-black uppercase tracking-widest text-slate-300 hover:text-white transition-colors">
-            Iniciar Sesión
-          </Link>
-          <Link href="/login" className="px-6 md:px-8 py-2.5 bg-white text-black font-black uppercase tracking-widest text-[10px] md:text-xs rounded-full hover:bg-cyan-400 hover:shadow-[0_0_20px_rgba(34,211,238,0.4)] transition-all">
-            Abrir Bóveda
-          </Link>
-        </div>
+
+        {/* Menú Desplegable Móvil */}
+        {menuMovilAbierto && (
+          <motion.div 
+            initial={{ opacity: 0, y: -10 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="md:hidden bg-[#0f172a] border-b border-slate-800 p-4 space-y-3 shadow-xl flex flex-col"
+          >
+            <a href="#beneficios" onClick={() => setMenuMovilAbierto(false)} className="block px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 rounded-xl">Beneficios</a>
+            <a href="#portafolios" onClick={() => setMenuMovilAbierto(false)} className="block px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 rounded-xl">Mercados</a>
+            <a href="#seguridad" onClick={() => setMenuMovilAbierto(false)} className="block px-3 py-2 text-base font-medium text-slate-300 hover:bg-slate-800 rounded-xl">Seguridad</a>
+            <Link href="/login" onClick={() => setMenuMovilAbierto(false)} className="block w-full text-center bg-cyan-500 text-slate-950 font-black py-3 rounded-xl uppercase tracking-widest text-xs shadow-lg">
+              Ingresar a Bóveda
+            </Link>
+          </motion.div>
+        )}
       </nav>
 
-      {/* HERO SECTION (IMPACTO INICIAL) */}
-      <section className="relative z-10 max-w-7xl mx-auto px-6 pt-20 pb-32 md:pt-32 md:pb-40 text-center flex flex-col items-center">
-        <motion.div initial="hidden" animate="visible" variants={fadeInUp} className="max-w-4xl">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900/50 border border-slate-800 mb-8 backdrop-blur-md">
+      {/* 2. SECCIÓN HERO (LA PRIMERA IMPRESIÓN MÁXIMA) */}
+      <header className="relative pt-20 pb-24 md:pt-32 md:pb-40 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto overflow-hidden">
+        {/* Efectos de luces de fondo */}
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/12 -translate-y-1/2 w-[300px] h-[300px] md:w-[600px] md:h-[600px] bg-cyan-500/10 rounded-full blur-[80px] md:blur-[140px] pointer-events-none"></div>
+        <div className="absolute top-1/3 left-1/3 w-[200px] h-[200px] md:w-[400px] md:h-[400px] bg-fuchsia-500/5 rounded-full blur-[60px] md:blur-[120px] pointer-events-none"></div>
+
+        <motion.div 
+          variants={staggerContainer}
+          initial="hidden"
+          animate="visible"
+          className="text-center relative z-10 space-y-6 md:space-y-8"
+        >
+          <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-900 border border-slate-800 shadow-inner">
             <span className="w-2 h-2 rounded-full bg-cyan-400 animate-pulse"></span>
-            <span className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-300">Gestión de Capital Institucional</span>
-          </div>
-          
-          <h2 className="text-5xl md:text-7xl lg:text-8xl font-black mb-8 leading-[1.1] tracking-tighter text-white">
-            INTELIGENCIA FINANCIERA <br className="hidden md:block" /> 
-            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-blue-500 to-fuchsia-500">SIN INTERMEDIARIOS</span>
-          </h2>
-          
-          <p className="text-lg md:text-xl text-slate-400 mb-12 max-w-2xl mx-auto leading-relaxed">
-            Accede a portafolios indexados y tecnología Blockchain de alto rendimiento. Construimos tu patrimonio con la seguridad de un banco suizo y la agilidad de la Web3.
-          </p>
-          
-          <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Link href="/login" className="px-10 py-5 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-black uppercase tracking-widest text-xs rounded-full shadow-[0_0_30px_rgba(6,182,212,0.3)] hover:shadow-[0_0_50px_rgba(6,182,212,0.5)] hover:scale-105 transition-all">
-              Comenzar a Invertir
+            <span className="text-[10px] md:text-xs font-bold uppercase tracking-widest text-slate-400">Acceso Exclusivo a Mercados de EE.UU.</span>
+          </motion.div>
+
+          <motion.h2 
+            variants={fadeInUp}
+            className="text-4xl sm:text-6xl md:text-8xl font-black text-white tracking-tighter leading-[0.95]"
+          >
+            Hazte dueño de tu <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-teal-300 to-fuchsia-500">
+              Libertad Financiera
+            </span>
+          </motion.h2>
+
+          <motion.p 
+            variants={fadeInUp}
+            className="max-w-xl sm:max-w-2xl mx-auto text-base sm:text-lg md:text-xl text-slate-400 font-medium leading-relaxed px-2"
+          >
+            Infraestructura tecnológica avanzada para la exposición inteligente a los portafolios indexados del S&P 500 y mercados cripto de alta liquidez. Construye patrimonio con respaldo de grado institucional.
+          </motion.p>
+
+          <motion.div 
+            variants={fadeInUp}
+            className="flex flex-col sm:flex-row justify-center items-center gap-4 pt-4 px-4 w-full sm:w-auto mx-auto"
+          >
+            <Link href="/login" className="w-full sm:w-auto bg-gradient-to-r from-cyan-500 to-cyan-600 hover:from-cyan-400 text-slate-950 font-black py-4.5 px-10 rounded-2xl transition-all uppercase tracking-widest text-xs text-center shadow-[0_0_30px_rgba(6,182,212,0.25)]">
+              Aperturar Cuenta Gratuita
             </Link>
-            <a href="#etf" className="px-10 py-5 bg-transparent border border-slate-700 text-white font-black uppercase tracking-widest text-xs rounded-full hover:bg-slate-800 transition-all">
-              Conocer Metodología
+            <a href="#portafolios" className="w-full sm:w-auto text-center border border-slate-700 text-slate-300 hover:bg-slate-900/50 hover:text-white font-bold py-4.5 px-10 rounded-2xl transition-all uppercase tracking-widest text-xs">
+              Explorar Portafolios
             </a>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* CINTA DE CONFIANZA (ESTADÍSTICAS) */}
-      <div className="relative z-10 border-y border-white/5 bg-slate-900/30 backdrop-blur-sm py-10">
-        <div className="max-w-7xl mx-auto px-6 grid grid-cols-2 md:grid-cols-4 gap-8 text-center divide-x divide-white/5">
-          <div>
-            <p className="text-3xl md:text-4xl font-black text-white font-mono">99.9%</p>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-2">Uptime de Servidores</p>
-          </div>
-          <div>
-            <p className="text-3xl md:text-4xl font-black text-cyan-400 font-mono">24/7</p>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-2">Auditoría de Fondos</p>
-          </div>
-          <div>
-            <p className="text-3xl md:text-4xl font-black text-white font-mono">0.0%</p>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-2">Comisiones Ocultas</p>
-          </div>
-          <div>
-            <p className="text-3xl md:text-4xl font-black text-fuchsia-400 font-mono">+150</p>
-            <p className="text-[10px] uppercase tracking-widest text-slate-500 font-bold mt-2">Activos Indexados</p>
-          </div>
-        </div>
-      </div>
-
-      {/* SECCIÓN: LA PLATAFORMA Y ETF */}
-      <section id="etf" className="relative z-10 py-32 px-6 max-w-7xl mx-auto">
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true, margin: "-100px" }} variants={fadeInUp} className="text-center mb-20">
-          <h3 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tight">El Ecosistema <span className="text-cyan-400">Perfecto</span></h3>
-          <p className="text-slate-400 max-w-2xl mx-auto text-lg">Tu capital no especula, invierte. Utilizamos ETFs (Exchange Traded Funds) para diversificar el riesgo y asegurar un crecimiento sostenido.</p>
-        </motion.div>
-
-        <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={staggerContainer} className="grid md:grid-cols-3 gap-8">
-          {[
-            {
-              icono: "🌐",
-              titulo: "Diversificación Global (ETFs)",
-              desc: "Tu dinero se distribuye en cestas de acciones de las empresas más sólidas del mundo. Menor riesgo, mayor estabilidad a largo plazo."
-            },
-            {
-              icono: "⚡",
-              titulo: "Infraestructura Blockchain",
-              desc: "Procesamos ingresos y retiros a través de la red BSC (BEP20) de Binance y protocolos encriptados para garantizar liquidez inmediata."
-            },
-            {
-              icono: "🏛️",
-              titulo: "Respaldo Bancario Local",
-              desc: "Integración fluida con el sistema financiero dominicano (Banreservas, BHD, QIK) para entradas y salidas de capital sin fricción."
-            }
-          ].map((item, i) => (
-            <motion.div key={i} variants={fadeInUp} className="bg-gradient-to-br from-slate-900 to-[#020617] border border-slate-800 p-10 rounded-[2rem] hover:border-cyan-500/30 transition-colors group">
-              <div className="text-4xl mb-6 bg-slate-800/50 w-16 h-16 rounded-2xl flex items-center justify-center group-hover:scale-110 transition-transform">{item.icono}</div>
-              <h4 className="text-xl font-black text-white mb-4">{item.titulo}</h4>
-              <p className="text-sm text-slate-400 leading-relaxed">{item.desc}</p>
-            </motion.div>
-          ))}
-        </motion.div>
-      </section>
-
-      {/* SECCIÓN: SEGURIDAD (VITAL PARA FINTECH) */}
-      <section id="seguridad" className="relative z-10 py-32 bg-slate-900/20 border-t border-slate-800">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-2 gap-16 items-center">
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp}>
-            <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-md bg-fuchsia-500/10 border border-fuchsia-500/20 mb-6">
-              <span className="text-[10px] font-black uppercase tracking-widest text-fuchsia-400">Auditoría y Ciberseguridad</span>
-            </div>
-            <h3 className="text-4xl md:text-6xl font-black text-white mb-8 tracking-tighter leading-tight">
-              TU PATRIMONIO, <br/>
-              <span className="text-slate-500">BLINDADO.</span>
-            </h3>
-            <div className="space-y-6">
-              {[
-                { title: "Cifrado End-to-End", text: "Toda tu información personal y financiera viaja encriptada bajo estándares militares AES-256." },
-                { title: "Bóvedas en Frío (Cold Storage)", text: "El 95% de los activos digitales se mantienen fuera de línea, imposibilitando vulnerabilidades de red." },
-                { title: "Pasarela PayPal Certificada", text: "Procesamiento de tarjetas de crédito tercerizado y asegurado por la infraestructura global de PayPal." }
-              ].map((item, i) => (
-                <div key={i} className="flex gap-4 items-start">
-                  <div className="mt-1 bg-cyan-500/20 text-cyan-400 p-1 rounded">✓</div>
-                  <div>
-                    <h5 className="font-bold text-white text-sm mb-1 uppercase tracking-wider">{item.title}</h5>
-                    <p className="text-slate-400 text-sm">{item.text}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </motion.div>
-          
-          <motion.div initial="hidden" whileInView="visible" viewport={{ once: true }} variants={fadeInUp} className="relative">
-            <div className="absolute inset-0 bg-gradient-to-r from-cyan-500 to-fuchsia-500 rounded-full blur-[100px] opacity-20"></div>
-            <div className="relative bg-[#020617] border border-slate-800 rounded-3xl p-8 shadow-2xl">
-              <div className="flex justify-between items-center mb-8 border-b border-slate-800 pb-4">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Estado del Sistema</span>
-                <span className="flex items-center gap-2 text-xs font-bold text-emerald-400"><span className="w-2 h-2 rounded-full bg-emerald-400"></span> Operativo</span>
-              </div>
-              <div className="space-y-4 font-mono text-xs text-slate-400">
-                <p>&gt; Validando protocolos de red...</p>
-                <p className="text-emerald-400">&gt; Conexión segura establecida.</p>
-                <p>&gt; Indexando Smart Contracts BEP20...</p>
-                <p className="text-emerald-400">&gt; Blockchain sincronizada.</p>
-                <p className="mt-8 text-cyan-400 animate-pulse">_Esperando credenciales de usuario</p>
-              </div>
+        </motion.div>
+      </header>
+
+      {/* 3. SECCIÓN BENEFICIOS / DIFERENCIADORES */}
+      <section id="beneficios" className="py-20 border-t border-slate-900 bg-[#01030a]/40 relative">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="text-center mb-16">
+            <h3 className="text-xs font-black uppercase tracking-widest text-cyan-400 mb-2">¿Por qué Inversor Libre?</h3>
+            <p className="text-2xl md:text-4xl font-black text-white tracking-tight">Ecosistema diseñado para la preservación de capital</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+            <div className="bg-[#0f172a]/50 border border-slate-800/80 p-8 rounded-3xl relative overflow-hidden group hover:border-slate-700 transition-colors">
+              <div className="text-3xl mb-4">🛡️</div>
+              <h4 className="text-lg font-bold text-white mb-2">Bóvedas con Cifrado AES-256</h4>
+              <p className="text-sm text-slate-400 leading-relaxed">Toda la contabilidad, credenciales e historiales financieros están blindados bajo estrictos parámetros de seguridad criptográfica de extremo a extremo.</p>
             </div>
-          </motion.div>
+            <div className="bg-[#0f172a]/50 border border-slate-800/80 p-8 rounded-3xl relative overflow-hidden group hover:border-slate-700 transition-colors">
+              <div className="text-3xl mb-4">📈</div>
+              <h4 className="text-lg font-bold text-white mb-2">Interés Compuesto Automático</h4>
+              <p className="text-sm text-slate-400 leading-relaxed">Nuestra tecnología te permite activar la reinversión de ganancias con un solo clic, multiplicando geométricamente tu rendimiento de manera desatendida.</p>
+            </div>
+            <div className="bg-[#0f172a]/50 border border-slate-800/80 p-8 rounded-3xl relative overflow-hidden group hover:border-slate-700 transition-colors">
+              <div className="text-3xl mb-4">📊</div>
+              <h4 className="text-lg font-bold text-white mb-2">Diversificación Automatizada</h4>
+              <p className="text-sm text-slate-400 leading-relaxed">Fondos distribuidos estratégicamente en las empresas más estables del mercado norteamericano (Apple, Microsoft, Nvidia, Amazon) a través de ETFs directos.</p>
+            </div>
+          </div>
         </div>
       </section>
 
-      {/* LLAMADO A LA ACCIÓN FINAL */}
-      <section className="relative z-10 py-32 text-center px-6">
-        <div className="max-w-4xl mx-auto bg-gradient-to-b from-slate-900 to-[#020617] border border-slate-800 p-12 md:p-20 rounded-[3rem] shadow-2xl relative overflow-hidden">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-full h-px bg-gradient-to-r from-transparent via-cyan-500 to-transparent"></div>
+      {/* 4. SECCIÓN MERCADOS (VISTA PREVIA DEL INTERIOR) */}
+      <section id="portafolios" className="py-25 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <h3 className="text-xs font-black uppercase tracking-widest text-fuchsia-400 mb-2">Vehículos Disponibles</h3>
+          <p className="text-2xl md:text-4xl font-black text-white tracking-tight">Portafolios de Inversión Administrados</p>
+          <p className="text-sm text-slate-400 mt-2">Selecciona la estrategia contable que se alinee con tu perfil de riesgo.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
           
-          <h3 className="text-4xl md:text-5xl font-black text-white mb-6 tracking-tighter">Toma el control de tu futuro hoy.</h3>
-          <p className="text-slate-400 mb-10 max-w-xl mx-auto">Únete al ecosistema privado de Inversor Libre y haz que tu capital trabaje con la eficiencia del 1%.</p>
-          <Link href="/login" className="inline-block px-12 py-5 bg-white text-black font-black uppercase tracking-widest text-sm rounded-full shadow-[0_0_40px_rgba(255,255,255,0.2)] hover:scale-105 transition-transform">
-            Crear Cuenta Gratuita
-          </Link>
+          {/* Tarjeta 1 */}
+          <div className="bg-[#0f172a]/30 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between shadow-xl">
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-bold text-white">Indexado Básico</h4>
+                <span className="bg-cyan-500/10 text-cyan-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md">Bajo Riesgo</span>
+              </div>
+              <p className="text-xs text-slate-400 mb-6">Canasta diversificada de ETFs líquidos enfocados en replicar con exactitud el comportamiento de las 500 empresas más sólidas de EE.UU. (S&P 500).</p>
+            </div>
+            <div>
+              <div className="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800 mb-4">
+                <div><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Target API</p><p className="text-lg font-black text-cyan-400">+5.5%</p></div>
+                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$50 USD</p></div>
+              </div>
+              <Link href="/login" className="block w-full text-center py-3 bg-white hover:bg-slate-200 text-black font-black rounded-xl uppercase text-xs tracking-widest transition-colors">Contratar Plan</Link>
+            </div>
+          </div>
+
+          {/* Tarjeta 2 */}
+          <div className="bg-[#0f172a]/30 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-24 h-24 bg-fuchsia-500/5 rounded-full blur-2xl"></div>
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-bold text-white">Crecimiento Web3</h4>
+                <span className="bg-fuchsia-500/10 text-fuchsia-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md">Moderado</span>
+              </div>
+              <p className="text-xs text-slate-400 mb-6">Exposición controlada a activos digitales de alta capitalización, contratos inteligentes regulados, ETFs de Bitcoin y nodos de validación de infraestructura descentralizada.</p>
+            </div>
+            <div>
+              <div className="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800 mb-4">
+                <div><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Target API</p><p className="text-lg font-black text-fuchsia-400">+12%</p></div>
+                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$250 USD</p></div>
+              </div>
+              <Link href="/login" className="block w-full text-center py-3 bg-white hover:bg-slate-200 text-black font-black rounded-xl uppercase text-xs tracking-widest transition-colors">Contratar Plan</Link>
+            </div>
+          </div>
+
+          {/* Tarjeta 3 */}
+          <div className="bg-[#0f172a]/30 border border-slate-800 rounded-3xl p-6 flex flex-col justify-between shadow-xl">
+            <div>
+              <div className="flex justify-between items-center mb-4">
+                <h4 className="text-lg font-bold text-white">Institucional Premium</h4>
+                <span className="bg-emerald-500/10 text-emerald-400 text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-md">Corporativo</span>
+              </div>
+              <p className="text-xs text-slate-400 mb-6">Acceso preferencial a fondos privados de liquidez corporativa transnacional, con rendimientos optimizados mediante estrategias de colaterales estructurados.</p>
+            </div>
+            <div>
+              <div className="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800 mb-4">
+                <div><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Target API</p><p className="text-lg font-black text-emerald-400">+25%</p></div>
+                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$1,000 USD</p></div>
+              </div>
+              <Link href="/login" className="block w-full text-center py-3 bg-white hover:bg-slate-200 text-black font-black rounded-xl uppercase text-xs tracking-widest transition-colors">Contratar Plan</Link>
+            </div>
+          </div>
+
         </div>
       </section>
 
-      {/* FOOTER CORPORATIVO */}
-      <footer className="relative z-10 border-t border-slate-800 bg-[#01030a] pt-20 pb-10">
-        <div className="max-w-7xl mx-auto px-6 grid md:grid-cols-4 gap-12 mb-16">
-          <div className="md:col-span-2">
-            <h1 className="text-2xl font-black tracking-tighter text-white mb-4">
-              INVERSOR<span className="text-cyan-400">LIBRE</span>
-            </h1>
-            <p className="text-slate-500 text-sm max-w-sm leading-relaxed mb-6">
-              Tecnología financiera avanzada para la gestión inteligente de capitales a través de mercados indexados y activos digitales.
+      {/* 5. SECCIÓN AUDITORÍA / CONFIANZA */}
+      <section id="seguridad" className="py-20 border-t border-slate-900 bg-slate-950/20 text-center px-4 sm:px-6 lg:px-8">
+        <div className="max-w-3xl mx-auto space-y-6">
+          <div className="w-12 h-12 bg-cyan-500/10 border border-cyan-500/20 text-cyan-400 flex items-center justify-center rounded-2xl mx-auto font-bold text-xl">🛡️</div>
+          <h3 className="text-2xl md:text-3xl font-black text-white tracking-tight uppercase tracking-wide">Transparencia Auditada</h3>
+          <p className="text-sm text-slate-400 leading-relaxed">
+            Inversor Libre es un ecosistema cerrado de gestión de capital tecnológico. No retenemos claves privadas de custodia compartida desprotegidas y cumplimos con los protocolos contables de reporte de evidencias financieras manuales aprobados por nuestro Centro de Mando. Tus aportes están resguardados frente a fluctuaciones tecnológicas locales.
+          </p>
+        </div>
+      </section>
+
+      {/* 6. FOOTER CORPORATIVO (CON ATRIBUCIÓN CODEMAGNUM Y LINKS ENLAZADOS) */}
+      <footer className="border-t border-slate-900 bg-[#01030a] py-16 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-3 gap-10 items-start">
+          
+          {/* Col 1: Brand info */}
+          <div className="space-y-4">
+            <h4 className="text-lg font-black text-white">INVERSOR<span className="text-cyan-400">LIBRE</span></h4>
+            <p className="text-xs text-slate-500 leading-relaxed max-w-sm">
+              Tecnología financiera de vanguardia para la optimización contable y exposición inteligente de capitales a los mercados financieros globales.
             </p>
           </div>
-          <div>
-            <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Legal</h4>
-            <ul className="space-y-3 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Términos del Servicio</a></li>
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Política de Privacidad</a></li>
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Prevención de Lavado (AML)</a></li>
+
+          {/* Col 2: Enlaces Legales Reales Conectados Directamente a la página Legal */}
+          <div className="space-y-4">
+            <h5 className="text-xs font-black uppercase tracking-widest text-slate-400">Marco Legal</h5>
+            <ul className="space-y-2 text-xs font-bold text-slate-500">
+              <li><Link href="/legales#terminos" className="hover:text-cyan-400 transition-colors">Términos del Servicio</Link></li>
+              <li><Link href="/legales#privacidad" className="hover:text-cyan-400 transition-colors">Política de Privacidad</Link></li>
+              <li><Link href="/legales#aml" className="hover:text-cyan-400 transition-colors">Prevención de Lavado (AML)</Link></li>
             </ul>
           </div>
-          <div>
-            <h4 className="text-white font-bold uppercase tracking-widest text-xs mb-6">Soporte</h4>
-            <ul className="space-y-3 text-sm text-slate-500">
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Centro de Ayuda</a></li>
-              <li><a href="#" className="hover:text-cyan-400 transition-colors">Contacto Corporativo</a></li>
-            </ul>
+
+          {/* Col 3: Enlace de Soporte */}
+          <div className="space-y-4">
+            <h5 className="text-xs font-black uppercase tracking-widest text-slate-400">Mesa de Ayuda</h5>
+            <p className="text-xs text-slate-500 leading-relaxed">¿Necesitas soporte institucional?</p>
+            <Link href="/login" className="inline-block text-xs font-bold text-cyan-400 hover:underline uppercase tracking-widest">
+              Abrir Ticket en Bóveda →
+            </Link>
           </div>
         </div>
-        <div className="max-w-7xl mx-auto px-6 border-t border-slate-800 pt-8 flex flex-col md:flex-row justify-between items-center gap-4">
-          <p className="text-slate-600 text-xs uppercase tracking-widest">© 2026 CodeMagnum Agency. Todos los derechos reservados.</p>
-          <p className="text-slate-700 text-[10px] uppercase tracking-widest">Santo Domingo, República Dominicana.</p>
+
+        {/* Cierre Técnico con Atribución Exclusiva a la Agencia */}
+        <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-900 text-center">
+          <p className="text-[10px] font-bold text-slate-600 uppercase tracking-widest">
+            © 2026 CODEMAGNUM. Todos los derechos reservados. Desarrollado bajo estándares de auditoría criptográfica.
+          </p>
         </div>
       </footer>
-    </main>
+
+    </div>
   )
 }
