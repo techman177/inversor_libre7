@@ -1,7 +1,7 @@
-'use client'; // Obligatorio en Next.js para poder usar botones y formularios
+'use client';
 
 import { useState } from 'react';
-import { supabase } from '../../lib/supabase'; // Conecta el "cable" de la base de datos
+import { supabase } from '../../lib/supabase';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
@@ -9,84 +9,91 @@ export default function LoginPage() {
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
 
-  // Esta es la función que hace la magia al darle clic al botón
   const registrarUsuario = async (e: React.FormEvent) => {
-    e.preventDefault(); // Evita que la página recargue
+    e.preventDefault();
+
+    if (!email || !password) {
+      setMensaje('⚠️ Por favor, llena todos los campos.');
+      return;
+    }
+
     setCargando(true);
     setMensaje('');
 
-    // Aquí Supabase hace el trabajo pesado y envía el correo
-    const { data, error } = await supabase.auth.signUp({
-      email: email,
-      password: password,
-    });
+    try {
+      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined;
+      const { error } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          emailRedirectTo: redirectTo,
+        },
+      });
 
-    if (error) {
-      setMensaje('❌ Error: ' + error.message);
-    } else {
-      setMensaje('✅ ¡Registro exitoso! Revisa tu bandeja de entrada o la carpeta de Spam para confirmar tu cuenta.');
+      if (error) {
+        throw error;
+      }
+
+      setMensaje('✅ ¡Registro exitoso! Revisa tu bandeja de entrada o Spam para confirmar tu cuenta.');
+    } catch (error: unknown) {
+      const message = error instanceof Error ? error.message : 'No se pudo completar el registro.';
+      setMensaje(`❌ Error: ${message}`);
+    } finally {
+      setCargando(false);
     }
-    setCargando(false);
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-md w-full space-y-8 bg-white p-8 rounded-xl shadow-md">
-        <div>
-          <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
+    <div className="min-h-screen flex items-center justify-center bg-slate-900 py-12 px-4 sm:px-6 lg:px-8 font-sans">
+      <div className="max-w-md w-full space-y-8 bg-slate-800 p-10 rounded-2xl shadow-2xl border border-slate-700">
+        <div className="text-center">
+          <h2 className="mt-2 text-4xl font-extrabold text-white tracking-tight">
             Inversor Libre
           </h2>
-          <p className="mt-2 text-center text-sm text-gray-600">
-            Crea tu cuenta para comenzar
+          <p className="mt-3 text-sm text-slate-400">
+            Tu camino hacia la libertad financiera
           </p>
         </div>
-        
+
         <form className="mt-8 space-y-6" onSubmit={registrarUsuario}>
-          <div className="rounded-md shadow-sm -space-y-px">
-            <div className="mb-4">
-              <label htmlFor="email-address" className="sr-only">Correo electrónico</label>
+          <div className="space-y-5">
+            <div>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Correo Electrónico</label>
               <input
-                id="email-address"
-                name="email"
                 type="email"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-t-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Tu correo electrónico"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-slate-500 transition-all outline-none"
+                placeholder="tu@correo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </div>
             <div>
-              <label htmlFor="password" className="sr-only">Contraseña</label>
+              <label className="block text-sm font-medium text-slate-300 mb-1">Contraseña</label>
               <input
-                id="password"
-                name="password"
                 type="password"
                 required
-                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-900 rounded-b-md focus:outline-none focus:ring-blue-500 focus:border-blue-500 focus:z-10 sm:text-sm"
-                placeholder="Contraseña (Mínimo 6 caracteres)"
+                className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-slate-500 transition-all outline-none"
+                placeholder="Mínimo 6 caracteres"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
             </div>
           </div>
 
-          {/* Aquí mostramos los mensajes de éxito o error */}
           {mensaje && (
-            <div className={`p-3 text-sm text-center rounded ${mensaje.includes('✅') ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>
+            <div className={`p-4 text-sm text-center rounded-lg font-medium ${mensaje.includes('✅') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-red-500/10 text-red-400 border border-red-500/20'}`}>
               {mensaje}
             </div>
           )}
 
-          <div>
-            <button
-              type="submit"
-              disabled={cargando}
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 disabled:opacity-50"
-            >
-              {cargando ? 'Creando cuenta...' : 'Registrarse'}
-            </button>
-          </div>
+          <button
+            type="submit"
+            disabled={cargando}
+            className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-all disabled:opacity-50 shadow-lg shadow-blue-500/30"
+          >
+            {cargando ? 'Procesando...' : 'Crear mi cuenta'}
+          </button>
         </form>
       </div>
     </div>
