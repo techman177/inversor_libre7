@@ -178,7 +178,7 @@ export default function ModernLandingPage() {
             <div>
               <div className="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800 mb-4">
                 <div><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Target API</p><p className="text-lg font-black text-cyan-400">+5.5%</p></div>
-                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$50 USD</p></div>
+                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$25 USD</p></div>
               </div>
               <Link href="/login" className="block w-full text-center py-3 bg-white hover:bg-slate-200 text-black font-black rounded-xl uppercase text-xs tracking-widest transition-colors">Contratar Plan</Link>
             </div>
@@ -197,7 +197,7 @@ export default function ModernLandingPage() {
             <div>
               <div className="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800 mb-4">
                 <div><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Target API</p><p className="text-lg font-black text-fuchsia-400">+12%</p></div>
-                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$25 USD</p></div>
+                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$50 USD</p></div>
               </div>
               <Link href="/login" className="block w-full text-center py-3 bg-white hover:bg-slate-200 text-black font-black rounded-xl uppercase text-xs tracking-widest transition-colors">Contratar Plan</Link>
             </div>
@@ -215,7 +215,7 @@ export default function ModernLandingPage() {
             <div>
               <div className="flex justify-between items-center p-4 bg-slate-900/50 rounded-xl border border-slate-800 mb-4">
                 <div><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Target API</p><p className="text-lg font-black text-emerald-400">+25%</p></div>
-                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$50 USD</p></div>
+                <div className="text-right"><p className="text-[9px] uppercase text-slate-500 font-bold tracking-widest">Ingreso Min.</p><p className="text-lg font-bold text-white">$100 USD</p></div>
               </div>
               <Link href="/login" className="block w-full text-center py-3 bg-white hover:bg-slate-200 text-black font-black rounded-xl uppercase text-xs tracking-widest transition-colors">Contratar Plan</Link>
             </div>
