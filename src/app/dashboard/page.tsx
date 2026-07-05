@@ -1,8 +1,10 @@
 'use client'
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
+import { useRouter } from 'next/navigation' // <-- Agregado para redirecciones rápidas
 
 export default function DashboardPage() {
+  const router = useRouter() // <-- Inicialización del enrutador
   const [loading, setLoading] = useState(true)
   const [userId, setUserId] = useState<string | null>(null)
   const [userData, setUserData] = useState<any>(null)
@@ -53,7 +55,7 @@ export default function DashboardPage() {
 
   const cargarDatosPlataforma = async () => {
     const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { window.location.href = '/login'; return }
+    if (!user) { router.push('/login'); return } // <-- Redirección optimizada
     setUserId(user.id)
 
     let { data: billetera } = await supabase.from('billeteras').select('*').eq('id_usuario', user.id).single()
@@ -229,7 +231,7 @@ export default function DashboardPage() {
                 </a>
               </div>
               <div className={`p-2 border-t ${temaOscuro ? 'border-slate-800' : 'border-slate-100'}`}>
-                <button onClick={() => { supabase.auth.signOut().then(() => window.location.href = '/login') }} className="flex items-center gap-3 w-full text-left p-3 rounded-xl text-sm font-bold text-red-400 hover:bg-red-400/10 transition-colors">
+                <button onClick={() => { supabase.auth.signOut().then(() => router.push('/login')) }} className="flex items-center gap-3 w-full text-left p-3 rounded-xl text-sm font-bold text-red-400 hover:bg-red-400/10 transition-colors">
                   <span>🚪</span> Cerrar Sesión
                 </button>
               </div>
