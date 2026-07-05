@@ -2,12 +2,14 @@
 
 import { useState } from 'react';
 import { supabase } from '../../lib/supabase';
+import { useRouter } from 'next/navigation';
 
 export default function LoginPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [cargando, setCargando] = useState(false);
   const [mensaje, setMensaje] = useState('');
+  const router = useRouter();
 
   const registrarUsuario = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,26 +22,20 @@ export default function LoginPage() {
     setCargando(true);
     setMensaje('');
 
-    try {
-      const redirectTo = typeof window !== 'undefined' ? `${window.location.origin}/dashboard` : undefined;
-      const { error } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: redirectTo,
-        },
-      });
+    const { data, error } = await supabase.auth.signUp({
+      email: email,
+      password: password,
+    });
 
-      if (error) {
-        throw error;
-      }
-
-      setMensaje('✅ ¡Registro exitoso! Revisa tu bandeja de entrada o Spam para confirmar tu cuenta.');
-    } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : 'No se pudo completar el registro.';
-      setMensaje(`❌ Error: ${message}`);
-    } finally {
+    if (error) {
+      setMensaje('❌ Error: ' + error.message);
       setCargando(false);
+    } else {
+      setMensaje('✅ ¡Acceso concedido! Redirigiendo...');
+      // Esto te empuja automáticamente a la página principal/dashboard
+      setTimeout(() => {
+        router.push('/'); 
+      }, 1500);
     }
   };
 
@@ -74,7 +70,7 @@ export default function LoginPage() {
                 type="password"
                 required
                 className="w-full px-4 py-3 bg-slate-900 border border-slate-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-white placeholder-slate-500 transition-all outline-none"
-                placeholder="Mínimo 6 caracteres"
+                placeholder="Mínimo 7 caracteres, 1 Mayúscula y 1 Símbolo"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
@@ -92,7 +88,7 @@ export default function LoginPage() {
             disabled={cargando}
             className="w-full flex justify-center py-3 px-4 border border-transparent text-sm font-bold rounded-lg text-white bg-blue-600 hover:bg-blue-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 focus:ring-offset-slate-900 transition-all disabled:opacity-50 shadow-lg shadow-blue-500/30"
           >
-            {cargando ? 'Procesando...' : 'Crear mi cuenta'}
+            {cargando ? 'Procesando...' : 'Crear mi cuenta y entrar'}
           </button>
         </form>
       </div>
